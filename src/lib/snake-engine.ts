@@ -1,8 +1,8 @@
 export const COLS = 32;
 export const ROWS = 32;
 export const LOOP_MS = 10;
-export const START_TICK_MS = 115;
-export const MIN_TICK_MS = 60;
+export const START_TICK_MS = 95;
+export const MIN_TICK_MS = 50;
 export const SPEEDUP_EVERY_TICKS = 25;
 export const SPEEDUP_STEP_MS = 5;
 export const MAX_FOOD = 10;
