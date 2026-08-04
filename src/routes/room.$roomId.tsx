@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SnakeArena } from "@/components/SnakeArena";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ function RoomPage() {
   const [draft, setDraft] = useState("");
   const [name, setName] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const stored = getPlayerName();
@@ -151,7 +152,26 @@ function RoomPage() {
         </header>
 
         <div className="flex flex-col items-center gap-5 md:flex-row md:items-start md:justify-center">
-          <SnakeArena state={state} myId={myId} />
+          <div
+            className="touch-none"
+            onTouchStart={(e) => {
+              const t = e.touches[0];
+              if (t) touchStart.current = { x: t.clientX, y: t.clientY };
+            }}
+            onTouchEnd={(e) => {
+              const start = touchStart.current;
+              touchStart.current = null;
+              const t = e.changedTouches[0];
+              if (!start || !t) return;
+              const dx = t.clientX - start.x;
+              const dy = t.clientY - start.y;
+              if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+              if (Math.abs(dx) > Math.abs(dy)) sendDir(dx > 0 ? "right" : "left");
+              else sendDir(dy > 0 ? "down" : "up");
+            }}
+          >
+            <SnakeArena state={state} myId={myId} />
+          </div>
 
           <aside className="w-full max-w-xs rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -187,23 +207,36 @@ function RoomPage() {
             </ul>
 
             <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              WASD or arrow keys. Eat dots to grow, and the board speeds up as the round goes on.
-              Hit a wall, yourself or another snake and you're out — heads colliding kills both.
+              WASD or arrow keys — on a phone, swipe the board or use the pad below. Eat dots to
+              grow, and the board speeds up as the round goes on. Hit a wall, yourself or another
+              snake and you're out — heads colliding kills both.
             </p>
 
             <div className="mt-4 grid grid-cols-3 gap-2 md:hidden">
               <span />
-              <Button variant="secondary" onClick={() => sendDir("up")}>
+              <Button variant="secondary" className="touch-none" onPointerDown={() => sendDir("up")}>
                 ↑
               </Button>
               <span />
-              <Button variant="secondary" onClick={() => sendDir("left")}>
+              <Button
+                variant="secondary"
+                className="touch-none"
+                onPointerDown={() => sendDir("left")}
+              >
                 ←
               </Button>
-              <Button variant="secondary" onClick={() => sendDir("down")}>
+              <Button
+                variant="secondary"
+                className="touch-none"
+                onPointerDown={() => sendDir("down")}
+              >
                 ↓
               </Button>
-              <Button variant="secondary" onClick={() => sendDir("right")}>
+              <Button
+                variant="secondary"
+                className="touch-none"
+                onPointerDown={() => sendDir("right")}
+              >
                 →
               </Button>
             </div>
