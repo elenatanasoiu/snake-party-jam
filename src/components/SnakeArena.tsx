@@ -47,7 +47,19 @@ export function SnakeArena({ state, myId }: { state: GameState; myId: string }) 
       ctx.fill();
     }
 
+    // Corpses fade out from the head, so draw them dimmer than live snakes.
+    for (const corpse of state.corpses) {
+      const color = SNAKE_COLORS[corpse.colorIndex % SNAKE_COLORS.length]!;
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = color;
+      for (const c of corpse.cells) {
+        ctx.fillRect(c.x * CELL + 4, c.y * CELL + 4, CELL - 8, CELL - 8);
+      }
+      ctx.globalAlpha = 1;
+    }
+
     for (const p of state.players) {
+      if (p.body.length === 0) continue;
       const color = SNAKE_COLORS[p.colorIndex % SNAKE_COLORS.length]!;
       ctx.fillStyle = color;
       ctx.shadowColor = color;
