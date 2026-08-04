@@ -6,6 +6,9 @@ export const MIN_TICK_MS = 50;
 export const SPEEDUP_EVERY_TICKS = 25;
 export const SPEEDUP_STEP_MS = 6;
 export const MAX_FOOD = 10;
+/** Every snake loses one tail segment this often — eat to stay ahead of it. */
+export const STARVE_MS = 20000;
+export const START_LENGTH = 3;
 export const ROUND_BREAK_MS = 4000;
 export const SNAKE_COLORS = [
   "oklch(0.82 0.21 145)",
@@ -31,6 +34,8 @@ export type Player = {
   alive: boolean;
   score: number;
   wins: number;
+  /** Timestamp of the next hunger shrink. */
+  starveAt: number;
 };
 
 export type Corpse = { cells: Cell[]; colorIndex: number };
@@ -103,6 +108,7 @@ export function makePlayer(id: string, name: string, colorIndex: number): Player
     alive: false,
     score: 0,
     wins: 0,
+    starveAt: 0,
   };
 }
 
@@ -116,10 +122,14 @@ function respawn(player: Player, index: number) {
   const head = { x: fromLeft ? 4 : COLS - 5, y: Math.min(ROWS - 3, lane) };
   const dir: Dir = fromLeft ? "right" : "left";
   const back = fromLeft ? -1 : 1;
-  player.body = [head, { x: head.x + back, y: head.y }, { x: head.x + back * 2, y: head.y }];
+  player.body = Array.from({ length: START_LENGTH }, (_, i) => ({
+    x: head.x + back * i,
+    y: head.y,
+  }));
   player.dir = dir;
   player.alive = true;
   player.score = 0;
+  player.starveAt = Date.now() + STARVE_MS;
 }
 
 export function startRound(state: GameState) {
@@ -229,6 +239,16 @@ export function step(state: GameState) {
       p.score += 1;
     } else {
       p.body.pop();
+    }
+
+    // Hunger: bodies always decay, so you have to keep eating.
+    if (now >= p.starveAt) {
+      p.starveAt = now + STARVE_MS;
+      p.body.pop();
+      if (p.body.length === 0) {
+        p.alive = false;
+        continue;
+      }
     }
   }
 
