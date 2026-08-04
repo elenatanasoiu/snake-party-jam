@@ -1,14 +1,20 @@
-# Welcome to your Lovable project
+# Quick Snake Party (30)
+
+help me code a quick javascript game that is a snake multiplayer game 
+
+It needs to be playable in the next 20 mins. Single room and allows people to join.
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://snake-party-jam.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/11996fd0-a2d3-48d4-a4c5-3cef18002999).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +26,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
