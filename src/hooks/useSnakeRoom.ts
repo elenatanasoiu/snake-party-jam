@@ -5,6 +5,7 @@ import {
   emptyState,
   LOOP_MS,
   makePlayer,
+  SNAKE_COLORS,
   step,
   type Corpse,
   type Dir,
