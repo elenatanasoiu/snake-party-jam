@@ -27,11 +27,23 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
   // Each player gets a short input queue so two quick turns in one tick both land
   // instead of the second overwriting the first.
   const pendingRef = useRef<Record<string, Dir[]>>({});
+  // Tick on which each player last had a turn applied, so the first turn after a
+  // tick lands the instant it arrives instead of waiting for the next tick.
+  const turnedOnTickRef = useRef<Record<string, number>>({});
 
   const queueInput = (id: string, dir: Dir) => {
+    const world = worldRef.current;
+    if (isHostRef.current && turnedOnTickRef.current[id] !== world.tick) {
+      const player = world.players.find((p) => p.id === id);
+      if (player?.alive) {
+        applyInput(player, dir);
+        turnedOnTickRef.current[id] = world.tick;
+        return;
+      }
+    }
     const queue = pendingRef.current[id] ?? (pendingRef.current[id] = []);
     if (queue[queue.length - 1] === dir) return;
-    if (queue.length >= 2) queue.shift();
+    if (queue.length >= 3) queue.shift();
     queue.push(dir);
   };
 
@@ -107,7 +119,10 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
         const dir = queue.shift();
         if (!dir) continue;
         const player = world.players.find((p) => p.id === id);
-        if (player && player.alive) applyInput(player, dir);
+        if (player && player.alive) {
+          applyInput(player, dir);
+          turnedOnTickRef.current[id] = world.tick;
+        }
       }
 
       step(world);
@@ -142,6 +157,14 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
         event: "input",
         payload: { id: myId, dir },
       });
+      // Optimistically turn our own snake locally so the input feels instant;
+      // the host's next snapshot is authoritative and overwrites this.
+      setState((prev) => ({
+        ...prev,
+        players: prev.players.map((p) =>
+          p.id === myId && p.alive ? { ...p, dir: OPPOSITE[p.dir] === dir ? p.dir : dir } : p,
+        ),
+      }));
     },
     [myId],
   );
