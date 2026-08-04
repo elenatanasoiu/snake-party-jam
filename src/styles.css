@@ -4,6 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Neon arcade design system for the multiplayer snake game */
+@theme inline {
+  --color-arena: var(--arena);
+  --color-grid: var(--grid);
+  --color-food: var(--food);
+  --font-display: var(--font-display-family);
+}
+
 /*
  * Design system definition.
  *
