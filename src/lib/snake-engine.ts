@@ -91,18 +91,16 @@ export function makePlayer(id: string, name: string, colorIndex: number): Player
   };
 }
 
-/** Places a snake at a fresh spot facing the middle of the board. */
-function respawn(player: Player, index: number, total: number) {
-  const angle = (index / Math.max(1, total)) * Math.PI * 2;
-  const cx = COLS / 2;
-  const cy = ROWS / 2;
-  const radius = Math.min(COLS, ROWS) * 0.32;
-  const head = {
-    x: Math.max(3, Math.min(COLS - 4, Math.round(cx + Math.cos(angle) * radius))),
-    y: Math.max(3, Math.min(ROWS - 4, Math.round(cy + Math.sin(angle) * radius))),
-  };
-  const dir: Dir = head.x < cx ? "right" : "left";
-  const back = dir === "right" ? -1 : 1;
+/**
+ * Each snake gets its own horizontal lane, alternating sides and travelling
+ * outward-to-inward, so nobody starts pointed straight at another snake.
+ */
+function respawn(player: Player, index: number) {
+  const lane = 3 + (index % 6) * 5;
+  const fromLeft = index % 2 === 0;
+  const head = { x: fromLeft ? 4 : COLS - 5, y: Math.min(ROWS - 3, lane) };
+  const dir: Dir = fromLeft ? "right" : "left";
+  const back = fromLeft ? -1 : 1;
   player.body = [head, { x: head.x + back, y: head.y }, { x: head.x + back * 2, y: head.y }];
   player.dir = dir;
   player.alive = true;
@@ -111,7 +109,7 @@ function respawn(player: Player, index: number, total: number) {
 
 export function startRound(state: GameState) {
   const roster = state.players;
-  roster.forEach((p, i) => respawn(p, i, roster.length));
+  roster.forEach((p, i) => respawn(p, i));
   state.phase = "playing";
   state.food = Array.from({ length: 6 }, randomCell);
   state.corpses = [];
