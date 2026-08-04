@@ -24,7 +24,16 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
   const worldRef = useRef<GameState>(emptyState());
   const membersRef = useRef<Member[]>([]);
   const isHostRef = useRef(false);
-  const pendingRef = useRef<Record<string, Dir>>({});
+  // Each player gets a short input queue so two quick turns in one tick both land
+  // instead of the second overwriting the first.
+  const pendingRef = useRef<Record<string, Dir[]>>({});
+
+  const queueInput = (id: string, dir: Dir) => {
+    const queue = pendingRef.current[id] ?? (pendingRef.current[id] = []);
+    if (queue[queue.length - 1] === dir) return;
+    if (queue.length >= 2) queue.shift();
+    queue.push(dir);
+  };
 
   useEffect(() => {
     if (!myName) return;
@@ -56,7 +65,7 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
       })
       .on("broadcast", { event: "input" }, ({ payload }) => {
         const { id, dir } = payload as { id: string; dir: Dir };
-        pendingRef.current[id] = dir;
+        queueInput(id, dir);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -92,12 +101,14 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
       if (world.phase === "playing" && now - lastTickAt < world.tickMs) return;
       lastTickAt = now;
 
-      // Apply queued inputs for everyone (host authoritative).
-      for (const [id, dir] of Object.entries(pendingRef.current)) {
+      // Apply one queued turn per player per tick (host authoritative); the rest
+      // stay queued for the next tick so fast double-taps aren't dropped.
+      for (const [id, queue] of Object.entries(pendingRef.current)) {
+        const dir = queue.shift();
+        if (!dir) continue;
         const player = world.players.find((p) => p.id === id);
         if (player && player.alive) applyInput(player, dir);
       }
-      pendingRef.current = {};
 
       step(world);
       const snapshot: GameState = {
@@ -123,7 +134,7 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
   const sendDir = useCallback(
     (dir: Dir) => {
       if (isHostRef.current) {
-        pendingRef.current[myId] = dir;
+        queueInput(myId, dir);
         return;
       }
       channelRef.current?.send({
