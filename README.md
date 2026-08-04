@@ -1,4 +1,4 @@
-# Quick Snake Party (30)
+# Snake Party Jam 
 
 Snake multi-player game built in under 20 mins. 
 
