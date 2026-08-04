@@ -72,9 +72,16 @@ function RoomPage() {
   );
   const me = state.players.find((p) => p.id === myId);
 
-  let banner = "Waiting for another snake to join…";
+  let banner = "Getting your snake ready…";
   if (state.phase === "playing") {
-    banner = me?.alive ? "Round live — stay alive." : "You're out. Watching until the next round.";
+    banner =
+      state.players.length === 1
+        ? me?.alive
+          ? "Solo run — share the invite link to add players."
+          : "You crashed. Next run starting…"
+        : me?.alive
+          ? "Round live — stay alive."
+          : "You're out. Watching until the next round.";
   } else if (state.phase === "ended") {
     banner = state.winnerName
       ? `${state.winnerName} wins the round! Next round starting…`
