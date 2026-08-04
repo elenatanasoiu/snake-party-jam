@@ -1,12 +1,13 @@
 const ID_KEY = "snake.playerId";
 const NAME_KEY = "snake.playerName";
 
+// Per-tab so two tabs in the same browser count as two players.
 export function getPlayerId(): string {
   if (typeof window === "undefined") return "ssr";
-  let id = window.localStorage.getItem(ID_KEY);
+  let id = window.sessionStorage.getItem(ID_KEY);
   if (!id) {
     id = Math.random().toString(36).slice(2, 10);
-    window.localStorage.setItem(ID_KEY, id);
+    window.sessionStorage.setItem(ID_KEY, id);
   }
   return id;
 }
