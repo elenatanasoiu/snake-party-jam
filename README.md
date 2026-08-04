@@ -1,20 +1,8 @@
 # Quick Snake Party (30)
 
-help me code a quick javascript game that is a snake multiplayer game 
-
-It needs to be playable in the next 20 mins. Single room and allows people to join.
-
-This project was built with [Lovable](https://lovable.dev).
+Snake multi-player game built in under 20 mins. 
 
 **Live app**: https://snake-party-jam.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/11996fd0-a2d3-48d4-a4c5-3cef18002999).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
