@@ -2,25 +2,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   applyInput,
-  spawnPlayer,
+  emptyState,
+  LOOP_MS,
+  makePlayer,
   step,
-  TICK_MS,
+  type Corpse,
   type Dir,
   type GameState,
 } from "@/lib/snake-engine";
 
-const ROOM = "snake-room-1";
-
 type Member = { id: string; name: string; joinedAt: number };
 
-export function useSnakeRoom(myId: string, myName: string | null) {
-  const [state, setState] = useState<GameState>({ players: [], food: [] });
+export function useSnakeRoom(roomId: string, myId: string, myName: string | null) {
+  const [state, setState] = useState<GameState>(emptyState);
   const [members, setMembers] = useState<Member[]>([]);
   const [connected, setConnected] = useState(false);
   const [isHost, setIsHost] = useState(false);
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const worldRef = useRef<GameState>({ players: [], food: [] });
+  const worldRef = useRef<GameState>(emptyState());
   const membersRef = useRef<Member[]>([]);
   const isHostRef = useRef(false);
   const pendingRef = useRef<Record<string, Dir>>({});
@@ -28,8 +28,9 @@ export function useSnakeRoom(myId: string, myName: string | null) {
   useEffect(() => {
     if (!myName) return;
     const joinedAt = Date.now();
+    let lastTickAt = 0;
 
-    const channel = supabase.channel(ROOM, {
+    const channel = supabase.channel(`snake:${roomId}`, {
       config: { presence: { key: myId } },
     });
     channelRef.current = channel;
@@ -64,7 +65,6 @@ export function useSnakeRoom(myId: string, myName: string | null) {
       });
 
     const timer = setInterval(() => {
-      // Apply queued inputs for everyone (host authoritative).
       const world = worldRef.current;
       if (!isHostRef.current) {
         pendingRef.current = {};
@@ -76,10 +76,16 @@ export function useSnakeRoom(myId: string, myName: string | null) {
       world.players = world.players.filter((p) => roster.some((m) => m.id === p.id));
       roster.forEach((m, i) => {
         if (!world.players.some((p) => p.id === m.id)) {
-          world.players.push(spawnPlayer(m.id, m.name, i % 6));
+          world.players.push(makePlayer(m.id, m.name, i % 6));
         }
       });
 
+      // The board runs faster as the round goes on, so gate on elapsed time.
+      const now = Date.now();
+      if (world.phase === "playing" && now - lastTickAt < world.tickMs) return;
+      lastTickAt = now;
+
+      // Apply queued inputs for everyone (host authoritative).
       for (const [id, dir] of Object.entries(pendingRef.current)) {
         const player = world.players.find((p) => p.id === id);
         if (player && player.alive) applyInput(player, dir);
@@ -88,12 +94,16 @@ export function useSnakeRoom(myId: string, myName: string | null) {
 
       step(world);
       const snapshot: GameState = {
+        ...world,
         players: world.players.map((p) => ({ ...p, body: p.body.map((c) => ({ ...c })) })),
         food: world.food.map((c) => ({ ...c })),
+        corpses: world.corpses.map(
+          (c): Corpse => ({ colorIndex: c.colorIndex, cells: c.cells.map((cell) => ({ ...cell })) }),
+        ),
       };
       setState(snapshot);
       channel.send({ type: "broadcast", event: "state", payload: snapshot });
-    }, TICK_MS);
+    }, LOOP_MS);
 
     return () => {
       clearInterval(timer);
@@ -101,7 +111,7 @@ export function useSnakeRoom(myId: string, myName: string | null) {
       channelRef.current = null;
       setConnected(false);
     };
-  }, [myId, myName]);
+  }, [roomId, myId, myName]);
 
   const sendDir = useCallback(
     (dir: Dir) => {
