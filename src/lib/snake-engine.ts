@@ -80,6 +80,19 @@ export function randomCell(): Cell {
   };
 }
 
+/** Food must never land under a snake, a corpse or another dot. */
+export function freeCell(state: GameState): Cell {
+  const taken = new Set<string>();
+  for (const p of state.players) for (const c of p.body) taken.add(`${c.x},${c.y}`);
+  for (const corpse of state.corpses) for (const c of corpse.cells) taken.add(`${c.x},${c.y}`);
+  for (const f of state.food) taken.add(`${f.x},${f.y}`);
+  for (let i = 0; i < 200; i++) {
+    const cell = randomCell();
+    if (!taken.has(`${cell.x},${cell.y}`)) return cell;
+  }
+  return randomCell();
+}
+
 export function makePlayer(id: string, name: string, colorIndex: number): Player {
   return {
     id,
@@ -113,8 +126,9 @@ export function startRound(state: GameState) {
   const roster = state.players;
   roster.forEach((p, i) => respawn(p, i));
   state.phase = "playing";
-  state.food = Array.from({ length: 6 }, randomCell);
   state.corpses = [];
+  state.food = [];
+  for (let i = 0; i < 6; i++) state.food.push(freeCell(state));
   state.tick = 0;
   state.tickMs = START_TICK_MS;
   state.winnerName = null;
@@ -160,7 +174,7 @@ export function step(state: GameState) {
 
   // Occasional extra food so the board keeps filling up over time.
   if (state.tick % 30 === 0 && state.food.length < MAX_FOOD) {
-    state.food.push(randomCell());
+    state.food.push(freeCell(state));
   }
 
   const living = state.players.filter((p) => p.alive);
@@ -211,7 +225,7 @@ export function step(state: GameState) {
     const foodIndex = state.food.findIndex((f) => f.x === head.x && f.y === head.y);
     if (foodIndex >= 0) {
       state.food.splice(foodIndex, 1);
-      state.food.push(randomCell());
+      state.food.push(freeCell(state));
       p.score += 1;
     } else {
       p.body.pop();
