@@ -25,38 +25,38 @@ export function SnakeArena({ state, myId }: { state: GameState; myId: string }) 
     ctx.fillStyle = arena;
     ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
 
-    ctx.strokeStyle = grid;
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= COLS; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x * CELL + 0.5, 0);
-      ctx.lineTo(x * CELL + 0.5, ROWS * CELL);
-      ctx.stroke();
-    }
-    for (let y = 0; y <= ROWS; y++) {
-      ctx.beginPath();
-      ctx.moveTo(0, y * CELL + 0.5);
-      ctx.lineTo(COLS * CELL, y * CELL + 0.5);
-      ctx.stroke();
+    // Everything is drawn as ASCII glyphs on a monospace character grid.
+    const MONO = `${CELL - 3}px "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace`;
+    ctx.font = MONO;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const glyph = (ch: string, x: number, y: number) => {
+      ctx.fillText(ch, x * CELL + CELL / 2, y * CELL + CELL / 2);
+    };
+
+    // Faint dot lattice stands in for the empty board.
+    ctx.fillStyle = grid;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) glyph("·", x, y);
     }
 
     ctx.fillStyle = food;
-    for (const f of state.food) {
-      ctx.beginPath();
-      ctx.arc(f.x * CELL + CELL / 2, f.y * CELL + CELL / 2, CELL * 0.32, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.shadowColor = food;
+    ctx.shadowBlur = 8;
+    for (const f of state.food) glyph("*", f.x, f.y);
+    ctx.shadowBlur = 0;
 
     // Corpses fade out from the head, so draw them dimmer than live snakes.
     for (const corpse of state.corpses) {
       const color = SNAKE_COLORS[corpse.colorIndex % SNAKE_COLORS.length]!;
-      ctx.globalAlpha = 0.28;
+      ctx.globalAlpha = 0.3;
       ctx.fillStyle = color;
-      for (const c of corpse.cells) {
-        ctx.fillRect(c.x * CELL + 4, c.y * CELL + 4, CELL - 8, CELL - 8);
-      }
+      for (const c of corpse.cells) glyph("+", c.x, c.y);
       ctx.globalAlpha = 1;
     }
+
+    const HEAD: Record<string, string> = { up: "^", down: "v", left: "<", right: ">" };
 
     for (const p of state.players) {
       if (p.body.length === 0) continue;
@@ -64,22 +64,21 @@ export function SnakeArena({ state, myId }: { state: GameState; myId: string }) 
       ctx.fillStyle = color;
       ctx.shadowColor = color;
       p.body.forEach((c, i) => {
-        ctx.shadowBlur = i === 0 ? 14 : 6;
-        const pad = i === 0 ? 1 : 2.5;
-        ctx.fillRect(c.x * CELL + pad, c.y * CELL + pad, CELL - pad * 2, CELL - pad * 2);
+        ctx.shadowBlur = i === 0 ? 12 : 5;
+        glyph(i === 0 ? (HEAD[p.dir] ?? "@") : "o", c.x, c.y);
       });
       ctx.shadowBlur = 0;
 
       const head = p.body[0];
       if (head) {
-        ctx.font = "600 10px system-ui, sans-serif";
-        ctx.textAlign = "center";
+        ctx.font = `600 10px "JetBrains Mono", Menlo, Consolas, monospace`;
         ctx.fillStyle = color;
         ctx.fillText(
           p.id === myId ? "you" : p.name,
           head.x * CELL + CELL / 2,
-          head.y * CELL - 4,
+          head.y * CELL - 5,
         );
+        ctx.font = MONO;
       }
     }
   }, [state, myId]);
