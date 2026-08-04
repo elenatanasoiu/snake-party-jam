@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Browse live rooms or start your own and share the link. Last snake standing wins the round.",
+          "Create or join a live snake room and play against friends in the browser. Last snake standing wins the round. No signup, just a name.",
       },
     ],
   }),

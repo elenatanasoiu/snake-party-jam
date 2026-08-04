@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Neon Snake Arena — Multiplayer Snake Rooms" },
+      { name: "description", content: "Create or join a live snake room and play against friends in the browser. Last snake standing wins the round. No signup, just a name." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Neon Snake Arena — Multiplayer Snake Rooms" },
+      { property: "og:description", content: "Create or join a live snake room and play against friends in the browser. Last snake standing wins the round. No signup, just a name." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Neon Snake Arena — Multiplayer Snake Rooms" },
+      { name: "twitter:description", content: "Create or join a live snake room and play against friends in the browser. Last snake standing wins the round. No signup, just a name." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7bf91a1b-ccde-497d-8b13-230d0e56c9d4/id-preview-1e4f3d98--11996fd0-a2d3-48d4-a4c5-3cef18002999.lovable.app-1785851580067.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7bf91a1b-ccde-497d-8b13-230d0e56c9d4/id-preview-1e4f3d98--11996fd0-a2d3-48d4-a4c5-3cef18002999.lovable.app-1785851580067.png" },
     ],
     links: [
       {
