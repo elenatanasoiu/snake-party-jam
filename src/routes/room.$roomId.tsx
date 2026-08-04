@@ -156,13 +156,13 @@ function RoomPage() {
             className="touch-none"
             onTouchStart={(e) => {
               const t = e.touches[0];
-              touchStart.current = { x: t.clientX, y: t.clientY };
+              if (t) touchStart.current = { x: t.clientX, y: t.clientY };
             }}
             onTouchEnd={(e) => {
               const start = touchStart.current;
               touchStart.current = null;
-              if (!start) return;
               const t = e.changedTouches[0];
+              if (!start || !t) return;
               const dx = t.clientX - start.x;
               const dy = t.clientY - start.y;
               if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
