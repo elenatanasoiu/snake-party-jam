@@ -138,13 +138,14 @@ export function step(state: GameState) {
   decayCorpses(state);
 
   if (state.phase === "waiting") {
-    if (state.players.length >= 2) startRound(state);
+    // Solo practice is allowed: one player is enough to start a round.
+    if (state.players.length >= 1) startRound(state);
     return;
   }
 
   if (state.phase === "ended") {
     if (now >= state.nextRoundAt) {
-      if (state.players.length >= 2) startRound(state);
+      if (state.players.length >= 1) startRound(state);
       else state.phase = "waiting";
     }
     return;
@@ -216,7 +217,9 @@ export function step(state: GameState) {
   }
 
   const survivors = state.players.filter((p) => p.alive);
-  if (survivors.length <= 1) {
+  // Solo: the round runs until you crash. Multiplayer: last snake standing wins.
+  const roundOver = state.players.length === 1 ? survivors.length === 0 : survivors.length <= 1;
+  if (roundOver) {
     state.phase = "ended";
     state.nextRoundAt = now + ROUND_BREAK_MS;
     const winner = survivors[0];
