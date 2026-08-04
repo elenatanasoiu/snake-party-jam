@@ -66,7 +66,7 @@ const DELTA: Record<Dir, Cell> = {
   right: { x: 1, y: 0 },
 };
 
-const OPPOSITE: Record<Dir, Dir> = {
+export const OPPOSITE: Record<Dir, Dir> = {
   up: "down",
   down: "up",
   left: "right",
