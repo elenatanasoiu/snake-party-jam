@@ -5,6 +5,7 @@ import {
   emptyState,
   LOOP_MS,
   makePlayer,
+  SNAKE_COLORS,
   step,
   type Corpse,
   type Dir,
@@ -74,10 +75,16 @@ export function useSnakeRoom(roomId: string, myId: string, myName: string | null
       const roster = membersRef.current;
       // Add joiners, drop leavers.
       world.players = world.players.filter((p) => roster.some((m) => m.id === p.id));
-      roster.forEach((m, i) => {
-        if (!world.players.some((p) => p.id === m.id)) {
-          world.players.push(makePlayer(m.id, m.name, i % 6));
-        }
+      // Give each joiner the lowest colour index nobody in the room is using,
+      // so two snakes never share a colour while the palette has room.
+      roster.forEach((m) => {
+        if (world.players.some((p) => p.id === m.id)) return;
+        const taken = new Set(world.players.map((p) => p.colorIndex));
+        let colorIndex = 0;
+        while (colorIndex < SNAKE_COLORS.length && taken.has(colorIndex)) colorIndex += 1;
+        world.players.push(
+          makePlayer(m.id, m.name, colorIndex % SNAKE_COLORS.length),
+        );
       });
 
       // The board runs faster as the round goes on, so gate on elapsed time.

@@ -14,6 +14,8 @@ export const SNAKE_COLORS = [
   "oklch(0.85 0.18 90)",
   "oklch(0.75 0.2 25)",
   "oklch(0.85 0.15 190)",
+  "oklch(0.8 0.2 60)",
+  "oklch(0.78 0.18 285)",
 ];
 
 export type Cell = { x: number; y: number };
