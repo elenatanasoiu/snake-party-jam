@@ -6,10 +6,24 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const staticSite = process.env.STATIC_SITE === "true";
+
 export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
-  },
+  vite: staticSite
+    ? {
+        base: "/snake-party-jam/",
+      }
+    : {},
+  tanstackStart: staticSite
+    ? {
+        spa: {
+          enabled: true,
+        },
+      }
+    : {
+        // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+        // nitro/vite builds from this
+        server: { entry: "server" },
+      },
+  nitro: staticSite ? false : undefined,
 });
